@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/ExostinScene.unity
+    path: Assets/Scenes/ExostinScenes/ExostinScene.unity
     guid: d5d4ff6c377adb14ea0f408e3ce23c0e
   m_configObjects: {}
