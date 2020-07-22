@@ -2,10 +2,10 @@
 
 public class MoveCamera : MonoBehaviour
 {
-    public Transform player;
+    public Transform playerHead;
 
     private void Update()
     {
-        transform.position = player.transform.position;
+        transform.position = playerHead.transform.position;
     }
 }
