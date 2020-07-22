@@ -3,6 +3,64 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    /// <summary>
+    /// Wall run Tutorial stuff, scroll down for full movement
+    /// </summary>
+
+    //Wallrunning
+    public LayerMask whatIsWall;
+
+    public float wallrunForce, maxWallrunTime, maxWallSpeed;
+    private bool isWallRight, isWallLeft;
+    private bool isWallRunning;
+    public float maxWallRunCameraTilt, wallRunCameraTilt;
+
+    private void WallRunInput() //make sure to call in void Update
+    {
+        //Wallrun
+        if (Input.GetKey(KeyCode.D) && isWallRight) StartWallrun();
+        if (Input.GetKey(KeyCode.A) && isWallLeft) StartWallrun();
+    }
+
+    private void StartWallrun()
+    {
+        rb.useGravity = false;
+        isWallRunning = true;
+        allowDashForceCounter = false;
+
+        if (rb.velocity.magnitude <= maxWallSpeed)
+        {
+            rb.AddForce(orientation.forward * wallrunForce * Time.deltaTime);
+
+            //Make sure char sticks to wall
+            if (isWallRight)
+                rb.AddForce(orientation.right * wallrunForce / 5 * Time.deltaTime);
+            else
+                rb.AddForce(-orientation.right * wallrunForce / 5 * Time.deltaTime);
+        }
+    }
+
+    private void StopWallRun()
+    {
+        isWallRunning = false;
+        rb.useGravity = true;
+    }
+
+    private void CheckForWall() //make sure to call in void Update
+    {
+        isWallRight = Physics.Raycast(transform.position, orientation.right, 1f, whatIsWall);
+        isWallLeft = Physics.Raycast(transform.position, -orientation.right, 1f, whatIsWall);
+
+        //leave wall run
+        if (!isWallLeft && !isWallRight) StopWallRun();
+        //reset double jump (if you have one :D)
+        if (isWallLeft || isWallRight) doubleJumpsLeft = startDoubleJumps;
+    }
+
+    /// <summary>
+    /// Wall run done, here comes the rest of the movement script
+    /// </summary>
+
     //Assingables
     public Transform playerCam;
 
@@ -21,6 +79,7 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 4500;
 
     public float maxSpeed = 20;
+    private float startMaxSpeed;
     public bool grounded;
     public LayerMask whatIsGround;
 
@@ -34,6 +93,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 playerScale;
     public float slideForce = 400;
     public float slideCounterMovement = 0.2f;
+    public float crouchGravityMultiplier;
 
     //Jumping
     private bool readyToJump = true;
@@ -41,19 +101,31 @@ public class PlayerMovement : MonoBehaviour
     private float jumpCooldown = 0.25f;
     public float jumpForce = 550f;
 
+    public int startDoubleJumps = 1;
+    private int doubleJumpsLeft;
+
     //Input
-    private float x, y;
+    public float x, y;
 
     private bool jumping, sprinting, crouching;
+
+    //AirDash
+    public float dashForce;
+
+    public float dashCooldown;
+    public float dashTime;
+    private bool allowDashForceCounter;
+    private bool readyToDash;
+    private int wTapTimes = 0;
+    private Vector3 dashStartVector;
 
     //Sliding
     private Vector3 normalVector = Vector3.up;
 
-    private Vector3 wallNormalVector;
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        startMaxSpeed = maxSpeed;
     }
 
     private void Start()
@@ -72,6 +144,8 @@ public class PlayerMovement : MonoBehaviour
     {
         MyInput();
         Look();
+        CheckForWall();
+        WallRunInput();
     }
 
     /// <summary>
@@ -82,13 +156,33 @@ public class PlayerMovement : MonoBehaviour
         x = Input.GetAxisRaw("Horizontal");
         y = Input.GetAxisRaw("Vertical");
         jumping = Input.GetButton("Jump");
-        crouching = Input.GetKey(KeyCode.LeftControl);
+        crouching = Input.GetKey(KeyCode.LeftShift);
 
         //Crouching
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+        if (Input.GetKeyDown(KeyCode.LeftShift))
             StartCrouch();
-        if (Input.GetKeyUp(KeyCode.LeftControl))
+        if (Input.GetKeyUp(KeyCode.LeftShift))
             StopCrouch();
+
+        //Double Jumping
+        if (Input.GetButtonDown("Jump") && !grounded && doubleJumpsLeft >= 1)
+        {
+            Jump();
+            doubleJumpsLeft--;
+        }
+
+        //Dashing
+        if (Input.GetKeyDown(KeyCode.W) && wTapTimes <= 1)
+        {
+            wTapTimes++;
+            Invoke("ResetTapTimes", 0.3f);
+        }
+        if (wTapTimes == 2 && readyToDash) Dash();
+    }
+
+    private void ResetTapTimes()
+    {
+        wTapTimes = 0;
     }
 
     private void StartCrouch()
@@ -113,7 +207,12 @@ public class PlayerMovement : MonoBehaviour
     private void Movement()
     {
         //Extra gravity
-        rb.AddForce(Vector3.down * Time.deltaTime * 10);
+        //Needed that the Ground Check works better!
+        float gravityMultiplier = 10f;
+
+        if (crouching) gravityMultiplier = crouchGravityMultiplier;
+
+        rb.AddForce(Vector3.down * Time.deltaTime * gravityMultiplier);
 
         //Find actual velocity relative to where player is looking
         Vector2 mag = FindVelRelativeToLook();
@@ -123,7 +222,14 @@ public class PlayerMovement : MonoBehaviour
         CounterMovement(x, y, mag);
 
         //If holding jump && ready to jump, then jump
-        if (readyToJump && jumping) Jump();
+        if (readyToJump && jumping && grounded) Jump();
+
+        //ResetStuff when touching ground
+        if (grounded)
+        {
+            readyToDash = true;
+            doubleJumpsLeft = startDoubleJumps;
+        }
 
         //Set max speed
         float maxSpeed = this.maxSpeed;
@@ -161,7 +267,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-        if (grounded && readyToJump)
+        if (grounded)
         {
             readyToJump = false;
 
@@ -178,11 +284,85 @@ public class PlayerMovement : MonoBehaviour
 
             Invoke(nameof(ResetJump), jumpCooldown);
         }
+        if (!grounded)
+        {
+            readyToJump = false;
+
+            //Add jump forces
+            rb.AddForce(orientation.forward * jumpForce * 1f);
+            rb.AddForce(Vector2.up * jumpForce * 1.5f);
+            rb.AddForce(normalVector * jumpForce * 0.5f);
+
+            //Reset Velocity
+            rb.velocity = Vector3.zero;
+
+            //Disable dashForceCounter if doublejumping while dashing
+            allowDashForceCounter = false;
+
+            Invoke(nameof(ResetJump), jumpCooldown);
+        }
+
+        //Walljump
+        if (isWallRunning)
+        {
+            readyToJump = false;
+
+            //normal jump
+            if (isWallLeft && !Input.GetKey(KeyCode.D) || isWallRight && !Input.GetKey(KeyCode.A))
+            {
+                rb.AddForce(Vector2.up * jumpForce * 1.5f);
+                rb.AddForce(normalVector * jumpForce * 0.5f);
+            }
+
+            //sidwards wallhop
+            if (isWallRight || isWallLeft && Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) rb.AddForce(-orientation.up * jumpForce * 1f);
+            if (isWallRight && Input.GetKey(KeyCode.A)) rb.AddForce(-orientation.right * jumpForce * 3.2f);
+            if (isWallLeft && Input.GetKey(KeyCode.D)) rb.AddForce(orientation.right * jumpForce * 3.2f);
+
+            //Always add forward force
+            rb.AddForce(orientation.forward * jumpForce * 1f);
+
+            //Disable dashForceCounter if doublejumping while dashing
+            allowDashForceCounter = false;
+
+            Invoke(nameof(ResetJump), jumpCooldown);
+        }
     }
 
     private void ResetJump()
     {
         readyToJump = true;
+    }
+
+    private void Dash()
+    {
+        //saves current velocity
+        dashStartVector = orientation.forward;
+
+        allowDashForceCounter = true;
+
+        readyToDash = false;
+        wTapTimes = 0;
+
+        //Deactivate gravity
+        rb.useGravity = false;
+
+        //Add force
+        rb.velocity = Vector3.zero;
+        rb.AddForce(orientation.forward * dashForce);
+
+        Invoke("ActivateGravity", dashTime);
+    }
+
+    private void ActivateGravity()
+    {
+        rb.useGravity = true;
+
+        //Counter currentForce
+        if (allowDashForceCounter)
+        {
+            rb.AddForce(dashStartVector * -dashForce * 0.5f);
+        }
     }
 
     private float desiredX;
@@ -201,8 +381,21 @@ public class PlayerMovement : MonoBehaviour
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
         //Perform the rotations
-        playerCam.transform.localRotation = Quaternion.Euler(xRotation, desiredX, 0);
+        playerCam.transform.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
         orientation.transform.localRotation = Quaternion.Euler(0, desiredX, 0);
+
+        //While Wallrunning
+        //Tilts camera in .5 second
+        if (Math.Abs(wallRunCameraTilt) < maxWallRunCameraTilt && isWallRunning && isWallRight)
+            wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
+        if (Math.Abs(wallRunCameraTilt) < maxWallRunCameraTilt && isWallRunning && isWallLeft)
+            wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
+
+        //Tilts camera back again
+        if (wallRunCameraTilt > 0 && !isWallRight && !isWallLeft)
+            wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
+        if (wallRunCameraTilt < 0 && !isWallRight && !isWallLeft)
+            wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
     }
 
     private void CounterMovement(float x, float y, Vector2 mag)
@@ -239,7 +432,6 @@ public class PlayerMovement : MonoBehaviour
     /// Find the velocity relative to where the player is looking
     /// Useful for vectors calculations regarding movement and limiting movement
     /// </summary>
-    /// <returns></returns>
     public Vector2 FindVelRelativeToLook()
     {
         float lookAngle = orientation.transform.eulerAngles.y;
