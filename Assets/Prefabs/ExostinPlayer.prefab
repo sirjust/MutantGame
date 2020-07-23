@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 6291042038348256886}
   - component: {fileID: 6291042038348256889}
   - component: {fileID: 6291042038348256888}
-  - component: {fileID: 6291042038348256891}
+  - component: {fileID: 8217634636714801805}
   m_Layer: 0
-  m_Name: Player
+  m_Name: ExostinPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -114,7 +114,7 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &6291042038348256891
+--- !u!114 &8217634636714801805
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -123,9 +123,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 6291042038348256893}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 421cddbcef3bfdc46980db34b7915d18, type: 3}
+  m_Script: {fileID: 11500000, guid: 5f0488952550e664393d26cb25867651, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  whatIsWall:
+    serializedVersion: 2
+    m_Bits: 2048
+  wallrunForce: 4000
+  maxWallrunTime: 60
+  maxWallSpeed: 30
+  maxWallRunCameraTilt: 40
+  wallRunCameraTilt: 15
   playerCam: {fileID: 0}
   orientation: {fileID: 6291042038864084504}
   moveSpeed: 4500
@@ -136,9 +144,16 @@ MonoBehaviour:
     m_Bits: 256
   counterMovement: 0.175
   maxSlopeAngle: 35
-  slideForce: 400
+  slideForce: 170
   slideCounterMovement: 0.2
+  crouchGravityMultiplier: 0
   jumpForce: 550
+  startDoubleJumps: 1
+  x: 0
+  y: 0
+  dashForce: 4000
+  dashCooldown: 1
+  dashTime: 2
 --- !u!1 &6291042038377164348
 GameObject:
   m_ObjectHideFlags: 0
