@@ -12,6 +12,18 @@ ModelImporter:
   - first:
       74: -7818301008748936003
     second: Run_90
+  - first:
+      74: 5691954190364097823
+    second: Run 45
+  - first:
+      74: -7395796714057367269
+    second: Run 90
+  - first:
+      74: 4552631588145899012
+    second: Run45
+  - first:
+      74: -6610618755882681347
+    second: Run90
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -91,7 +103,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Run_45
+      name: Run45
       takeName: mixamo.com
       internalID: 0
       firstFrame: 0
@@ -103,7 +115,7 @@ ModelImporter:
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 1
-      loopBlend: 1
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
@@ -120,7 +132,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Run_90
+      name: Run90
       takeName: mixamo.com
       internalID: 0
       firstFrame: 0

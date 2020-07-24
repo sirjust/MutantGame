@@ -7,18 +7,15 @@ public class AnimationScript : MonoBehaviour
 
     public Animator animator;
 
-    // These are 'parameters' defined in my character animator. We want to change these parameters based on the input the character is receiving.
-    // If the character were a top down view, vertical movement would be forward and backward. Horizontal is left and right.
     public float Vertical_f;
     public float Horizontal_f;
 
     void Start()
     {
-        // Get Animator from game object and apply it to animator variable
         animator = this.gameObject.GetComponent<Animator>();
     }
 
-    public float dampTime; // Basically how smooth the transition between animations is. 
+    public float dampTime;
 
     void Update()
     {

@@ -7,12 +7,6 @@ public class PlayerMovement : MonoBehaviour
     /// Wall run Tutorial stuff, scroll down for full movement
     /// </summary>
 
-    // Animation
-    public Animator animator;
-    float Vertical_f;
-    float Horizontal_f;
-
-
     //Wallrunning
     public LayerMask whatIsWall;
 
