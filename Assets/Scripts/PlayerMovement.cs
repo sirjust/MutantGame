@@ -133,6 +133,8 @@ public class PlayerMovement : MonoBehaviour
         playerScale = transform.localScale;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+
     }
 
     private void FixedUpdate()
@@ -157,6 +159,9 @@ public class PlayerMovement : MonoBehaviour
         y = Input.GetAxisRaw("Vertical");
         jumping = Input.GetButton("Jump");
         crouching = Input.GetKey(KeyCode.LeftShift);
+
+        ///////////////////////////////////////////
+
 
         //Crouching
         if (Input.GetKeyDown(KeyCode.LeftShift))
@@ -380,9 +385,9 @@ public class PlayerMovement : MonoBehaviour
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        //Perform the rotations
+        //Perform the rotations        
         playerCam.transform.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
-        orientation.transform.localRotation = Quaternion.Euler(0, desiredX, 0);
+        transform.localRotation = Quaternion.Euler(0, desiredX, 0);
 
         //While Wallrunning
         //Tilts camera in .5 second
